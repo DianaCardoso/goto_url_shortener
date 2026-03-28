@@ -1,0 +1,18 @@
+2026-03-28 19:14:54 - Starting C:\Program Files\nodejs\node.exe  C:\Users\diana\goto_url_shortener\node_modules\node-windows\lib\wrapper.js --file C:\Users\diana\goto_url_shortener\server.js --scriptoptions= --log "goto-app wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2026-03-28 19:14:54 - Started 16156
+2026-03-28 19:48:10 - Stopping gotoapp.exe
+2026-03-28 19:48:10 - ProcessKill 16156
+2026-03-28 19:48:11 - Found child process: 10820 Name: conhost.exe
+2026-03-28 19:48:11 - Found child process: 21856 Name: node.exe
+2026-03-28 19:48:11 - Stopping process 10820
+2026-03-28 19:48:11 - Send SIGINT 10820
+2026-03-28 19:48:11 - SIGINT to 10820 failed - Killing as fallback
+2026-03-28 19:48:11 - Stopping process 21856
+2026-03-28 19:48:11 - Send SIGINT 21856
+2026-03-28 19:48:11 - SIGINT to 21856 failed - Killing as fallback
+2026-03-28 19:48:11 - Stopping process 16156
+2026-03-28 19:48:11 - Send SIGINT 16156
+2026-03-28 19:48:11 - SIGINT to 16156 failed - Killing as fallback
+2026-03-28 19:48:11 - Finished gotoapp.exe
+2026-03-28 19:48:22 - Starting C:\Program Files\nodejs\node.exe  C:\Users\diana\goto_url_shortener\node_modules\node-windows\lib\wrapper.js --file C:\Users\diana\goto_url_shortener\server.js --scriptoptions= --log "goto-app wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2026-03-28 19:48:22 - Started 14784

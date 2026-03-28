@@ -34,7 +34,7 @@ Write-Host "[1/4] Updating hosts file..." -ForegroundColor Yellow
 
 $hostsContent = Get-Content $hostsFile -Raw -ErrorAction SilentlyContinue
 if ($hostsContent -match '\bgoto\b') {
-    Write-Host "      'goto' already exists in hosts file — skipping." -ForegroundColor Gray
+    Write-Host "      'goto' already exists in hosts file skipping." -ForegroundColor Gray
 } else {
     try {
         Add-Content -Path $hostsFile -Value "`n$hostEntry" -Encoding ASCII

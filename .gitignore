@@ -13,7 +13,7 @@ Thumbs.db
 # env
 .env
 
-# dados locais (IMPORTANTE no seu caso)
+# dados locais
 data.json
 
 # certificados (se usar https)

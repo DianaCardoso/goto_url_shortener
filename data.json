@@ -2,6 +2,7 @@
   "aliases": {
     "drive": "https://drive.google.com/drive/u/0/my-drive",
     "maps": "https://www.google.com/maps",
-    "fotos": "https://photos.google.com/"
+    "fotos": "https://photos.google.com/",
+    "yt": "https://www.youtube.com/"
   }
 }

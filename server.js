@@ -32,6 +32,15 @@ function jsonResponse(res, status, data) {
   res.end(JSON.stringify(data));
 }
 
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 function serveFile(res, filePath, contentType) {
   fs.readFile(filePath, (err, data) => {
     if (err) {
@@ -174,10 +183,11 @@ function createAppHandler(protocol, port) {
         res.writeHead(302, { Location: target });
         return res.end();
       }
+      const escapedAlias = escapeHtml(alias);
       res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
       return res.end(
         `<!DOCTYPE html><html><body style="font-family:system-ui;max-width:600px;margin:60px auto;padding:0 20px">` +
-          `<h2>Alias not found: <code>${alias}</code></h2>` +
+          `<h2>Alias not found: <code>${escapedAlias}</code></h2>` +
           `<p><a href="${getOrigin(req, protocol, port)}/">Manage aliases</a></p></body></html>`,
       );
     }

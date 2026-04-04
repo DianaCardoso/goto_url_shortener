@@ -3,9 +3,9 @@
 	<name>goto-app</name>
 	<description>Local URL shortener — redirects http://goto/&lt;alias&gt; to saved URLs</description>
 	<executable>C:\Program Files\nodejs\node.exe</executable>
-	<argument>C:\Users\diana\goto_url_shortener\node_modules\node-windows\lib\wrapper.js</argument>
+	<argument>C:\Users\<your_user>\goto_url_shortener\node_modules\node-windows\lib\wrapper.js</argument>
 	<argument>--file</argument>
-	<argument>C:\Users\diana\goto_url_shortener\server.js</argument>
+	<argument>C:\Users\<your_user>\goto_url_shortener\server.js</argument>
 	<argument>--scriptoptions=</argument>
 	<argument>--log</argument>
 	<argument>goto-app wrapper</argument>
@@ -22,9 +22,9 @@
 	<logmode>rotate</logmode>
 	<stoptimeout>30sec</stoptimeout>
 	<serviceaccount>
-		<domain>DESKTOP-DIANA</domain>
+		<domain>DESKTOP-<your_user></domain>
 		<user>LocalSystem</user>
 		<password></password>
 	</serviceaccount>
-	<workingdirectory>C:\Users\diana\goto_url_shortener</workingdirectory>
+	<workingdirectory>C:\Users\<your_user>\goto_url_shortener</workingdirectory>
 </service>

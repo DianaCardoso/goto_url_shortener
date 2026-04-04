@@ -5,28 +5,12 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const { loadConfig } = require("./config");
+const { createAliasStore } = require("./storage");
 
 const config = loadConfig();
 const DATA_FILE = config.dataFile;
 const PUBLIC_DIR = path.join(__dirname, "public");
-
-// ---------------------------------------------------------------------------
-// Data layer
-// ---------------------------------------------------------------------------
-
-function loadDb() {
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
-    fs.writeFileSync(DATA_FILE, JSON.stringify({ aliases: {} }, null, 2));
-  }
-  return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
-}
-
-function saveDb(db) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2));
-}
-
-let db = loadDb();
+const aliasStore = createAliasStore(DATA_FILE);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -67,7 +51,7 @@ function serveFile(res, filePath, contentType) {
 function handleApi(req, res, method, pathname) {
   // GET /api/aliases
   if (method === "GET" && pathname === "/api/aliases") {
-    return jsonResponse(res, 200, db.aliases);
+    return jsonResponse(res, 200, aliasStore.list());
   }
 
   // POST /api/aliases  { alias, url }
@@ -93,8 +77,7 @@ function handleApi(req, res, method, pathname) {
           error: "url must start with http:// or https://",
         });
       }
-      db.aliases[alias] = target;
-      saveDb(db);
+      aliasStore.set(alias, target);
       return jsonResponse(res, 201, { alias, url: target });
     });
   }
@@ -103,11 +86,9 @@ function handleApi(req, res, method, pathname) {
   const deleteMatch = pathname.match(/^\/api\/aliases\/(.+)$/);
   if (method === "DELETE" && deleteMatch) {
     const alias = decodeURIComponent(deleteMatch[1]);
-    if (!db.aliases[alias]) {
+    if (!aliasStore.delete(alias)) {
       return jsonResponse(res, 404, { error: "alias not found" });
     }
-    delete db.aliases[alias];
-    saveDb(db);
     return jsonResponse(res, 200, { deleted: alias });
   }
 
@@ -188,7 +169,7 @@ function createAppHandler(protocol, port) {
     // Alias redirect (must be last)
     if (method === "GET") {
       const alias = pathname.slice(1); // strip leading "/"
-      const target = db.aliases[alias];
+      const target = aliasStore.get(alias);
       if (target) {
         res.writeHead(302, { Location: target });
         return res.end();

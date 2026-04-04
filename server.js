@@ -1,32 +1,18 @@
 "use strict";
 
+require("dotenv").config();
+
 const https = require("node:https");
 const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
-const url = require("node:url");
+const { loadConfig } = require("./config");
+const { createAliasStore } = require("./storage");
 
-const DATA_FILE = path.join(__dirname, "data.json");
+const config = loadConfig();
+const DATA_FILE = config.dataFile;
 const PUBLIC_DIR = path.join(__dirname, "public");
-const PORT = 443;
-const HOST = "0.0.0.0";
-
-// ---------------------------------------------------------------------------
-// Data layer
-// ---------------------------------------------------------------------------
-
-function loadDb() {
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify({ aliases: {} }, null, 2));
-  }
-  return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
-}
-
-function saveDb(db) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2));
-}
-
-let db = loadDb();
+const aliasStore = createAliasStore(DATA_FILE);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -48,6 +34,15 @@ function jsonResponse(res, status, data) {
   res.end(JSON.stringify(data));
 }
 
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 function serveFile(res, filePath, contentType) {
   fs.readFile(filePath, (err, data) => {
     if (err) {
@@ -67,7 +62,7 @@ function serveFile(res, filePath, contentType) {
 function handleApi(req, res, method, pathname) {
   // GET /api/aliases
   if (method === "GET" && pathname === "/api/aliases") {
-    return jsonResponse(res, 200, db.aliases);
+    return jsonResponse(res, 200, aliasStore.list());
   }
 
   // POST /api/aliases  { alias, url }
@@ -93,8 +88,7 @@ function handleApi(req, res, method, pathname) {
           error: "url must start with http:// or https://",
         });
       }
-      db.aliases[alias] = target;
-      saveDb(db);
+      aliasStore.set(alias, target);
       return jsonResponse(res, 201, { alias, url: target });
     });
   }
@@ -103,11 +97,9 @@ function handleApi(req, res, method, pathname) {
   const deleteMatch = pathname.match(/^\/api\/aliases\/(.+)$/);
   if (method === "DELETE" && deleteMatch) {
     const alias = decodeURIComponent(deleteMatch[1]);
-    if (!db.aliases[alias]) {
+    if (!aliasStore.delete(alias)) {
       return jsonResponse(res, 404, { error: "alias not found" });
     }
-    delete db.aliases[alias];
-    saveDb(db);
     return jsonResponse(res, 200, { deleted: alias });
   }
 
@@ -115,17 +107,27 @@ function handleApi(req, res, method, pathname) {
 }
 
 // ---------------------------------------------------------------------------
-// Request handler
+// Request helpers
 // ---------------------------------------------------------------------------
 
-const server = https.createServer(
-  {
-    key: fs.readFileSync("C:/Users/YOUR_USER/mkcert/goto-key.pem"),
-    cert: fs.readFileSync("C:/Users/YOUR_USER/mkcert/goto.pem"),
-  },
-  (req, res) => {
-    const parsed = url.parse(req.url, true);
-    const pathname = parsed.pathname;
+function isDefaultPort(protocol, port) {
+  return (
+    (protocol === "http" && port === 80) ||
+    (protocol === "https" && port === 443)
+  );
+}
+
+function getOrigin(req, protocol, port) {
+  const baseUrl = new URL(`${protocol}://${req.headers.host || "localhost"}`);
+  baseUrl.protocol = `${protocol}:`;
+  baseUrl.port = isDefaultPort(protocol, port) ? "" : String(port);
+  return baseUrl.origin;
+}
+
+function createAppHandler(protocol, port) {
+  return (req, res) => {
+    const requestUrl = new URL(req.url, `${protocol}://localhost`);
+    const pathname = requestUrl.pathname;
     const method = req.method;
 
     // Handle CORS preflight for API calls
@@ -133,6 +135,7 @@ const server = https.createServer(
       res.writeHead(204, {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET,POST,DELETE",
+        "Access-Control-Allow-Headers": "Content-Type",
       });
       return res.end();
     }
@@ -179,49 +182,90 @@ const server = https.createServer(
     // Alias redirect (must be last)
     if (method === "GET") {
       const alias = pathname.slice(1); // strip leading "/"
-      const target = db.aliases[alias];
+      const target = aliasStore.get(alias);
       if (target) {
         res.writeHead(302, { Location: target });
         return res.end();
       }
+      const escapedAlias = escapeHtml(alias);
       res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
       return res.end(
         `<!DOCTYPE html><html><body style="font-family:system-ui;max-width:600px;margin:60px auto;padding:0 20px">` +
-          `<h2>Alias not found: <code>${alias}</code></h2>` +
-          `<p><a href="https://goto/">Manage aliases</a></p></body></html>`,
+          `<h2>Alias not found: <code>${escapedAlias}</code></h2>` +
+          `<p><a href="${getOrigin(req, protocol, port)}/">Manage aliases</a></p></body></html>`,
       );
     }
 
     res.writeHead(405);
     res.end();
-  },
-);
+  };
+}
 
-server.listen(PORT, HOST, () => {
-  console.log(`goto-app running on https://${HOST}:${PORT}`);
-  console.log("Management UI: https://goto/");
-});
+function createRedirectHandler() {
+  return (req, res) => {
+    const location = new URL(
+      req.url,
+      getOrigin(req, "https", config.httpsPort),
+    );
+    res.writeHead(301, { Location: location.toString() });
+    res.end();
+  };
+}
 
-const httpServer = http.createServer((req, res) => {
-  const host = req.headers.host?.split(":")[0] || "goto";
-
-  res.writeHead(301, {
-    Location: `https://${host}${req.url}`,
+function attachServerErrorHandler(server, protocol, port) {
+  server.on("error", (err) => {
+    if (err.code === "EACCES") {
+      console.error(
+        `Error: Cannot bind ${protocol.toUpperCase()} server to port ${port}.`,
+      );
+    } else if (err.code === "EADDRINUSE") {
+      console.error(
+        `Error: ${protocol.toUpperCase()} port ${port} is already in use.`,
+      );
+    } else {
+      console.error(`${protocol.toUpperCase()} server error:`, err);
+    }
+    process.exit(1);
   });
-  res.end();
+}
+
+const appHandler = createAppHandler("http", config.httpPort);
+const httpHandler = config.forceHttps ? createRedirectHandler() : appHandler;
+const httpServer = http.createServer(httpHandler);
+attachServerErrorHandler(httpServer, "http", config.httpPort);
+
+httpServer.listen(config.httpPort, config.host, () => {
+  console.log(
+    `HTTP server listening on http://${config.host}:${config.httpPort}`,
+  );
 });
 
-httpServer.listen(80, "0.0.0.0", () => {
-  console.log("HTTP redirect running on port 80 → HTTPS");
-});
+if (config.httpsEnabled) {
+  const httpsServer = https.createServer(
+    {
+      key: fs.readFileSync(config.tlsKeyFile),
+      cert: fs.readFileSync(config.tlsCertFile),
+    },
+    createAppHandler("https", config.httpsPort),
+  );
 
-server.on("error", (err) => {
-  if (err.code === "EACCES") {
-    console.error(`Error: Cannot bind to port ${PORT}. Run as Administrator.`);
-  } else if (err.code === "EADDRINUSE") {
-    console.error(`Error: Port ${PORT} is already in use.`);
-  } else {
-    console.error("Server error:", err);
+  attachServerErrorHandler(httpsServer, "https", config.httpsPort);
+
+  httpsServer.listen(config.httpsPort, config.host, () => {
+    console.log(
+      `HTTPS server listening on https://${config.host}:${config.httpsPort}`,
+    );
+  });
+}
+
+console.log(`Data file: ${DATA_FILE}`);
+
+if (config.httpsEnabled) {
+  if (config.forceHttps) {
+    console.log("HTTP requests will redirect to HTTPS.");
   }
-  process.exit(1);
-});
+} else {
+  console.log(
+    "HTTPS is disabled. Set GOTO_TLS_KEY_FILE and GOTO_TLS_CERT_FILE to enable it.",
+  );
+}

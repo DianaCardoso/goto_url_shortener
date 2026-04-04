@@ -120,8 +120,8 @@ function handleApi(req, res, method, pathname) {
 
 const server = https.createServer(
   {
-    key: fs.readFileSync("C:/Users/<your_user>/mkcert/goto-key.pem"),
-    cert: fs.readFileSync("C:/Users/<your_user>/mkcert/goto.pem"),
+    key: fs.readFileSync("C:/Users/YOUR_USER/mkcert/goto-key.pem"),
+    cert: fs.readFileSync("C:/Users/YOUR_USER/mkcert/goto.pem"),
   },
   (req, res) => {
     const parsed = url.parse(req.url, true);

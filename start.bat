@@ -7,7 +7,8 @@ echo   goto-app — Local URL Shortener
 echo ================================================
 echo.
 echo Starting server with current GOTO_* environment settings...
-echo Default manual mode: http://127.0.0.1:8080/
+echo Default manual mode: http://localhost:%GOTO_HTTP_PORT%/
+echo The custom goto hostname only works after running the installer.
 echo.
 echo Management UI: http://%GOTO_HOST%:%GOTO_HTTP_PORT%/
 echo.

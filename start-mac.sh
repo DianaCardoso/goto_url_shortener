@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
 # goto-app manual start for macOS (use when the LaunchDaemon is not installed)
-# Requires Administrator privileges to bind port 80.
-# Usage: sudo bash start-mac.sh
+
+export GOTO_HOST="${GOTO_HOST:-127.0.0.1}"
+export GOTO_HTTP_PORT="${GOTO_HTTP_PORT:-8080}"
 
 echo "================================================"
 echo "  goto-app — Local URL Shortener"
 echo "================================================"
 echo ""
-echo "Starting server on port 80..."
-echo "This requires Administrator privileges."
+echo "Starting server with current GOTO_* environment settings..."
+echo "Default manual mode: http://localhost:${GOTO_HTTP_PORT}/"
+echo "The custom goto hostname only works after running the installer."
 echo ""
-echo "Management UI: http://goto/"
+echo "Management UI: http://${GOTO_HOST}:${GOTO_HTTP_PORT}/"
 echo ""
 
-if [ "$EUID" -ne 0 ]; then
-  exec sudo node "$(dirname "$0")/server.js"
-else
-  node "$(dirname "$0")/server.js"
-fi
+exec node "$(dirname "$0")/server.js"

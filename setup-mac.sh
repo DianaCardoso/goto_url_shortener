@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # goto-app setup for macOS
-# Adds hosts entry, installs npm deps, registers a LaunchDaemon (port 80 requires root).
+# Adds hosts entry, installs npm deps, registers a LaunchDaemon.
 # Usage: sudo bash setup-mac.sh
 #        (script self-elevates if not already root)
+
+set -euo pipefail
 
 # ---------------------------------------------------------------------------
 # Self-elevation
@@ -16,6 +18,27 @@ APP_DIR="$(cd "$(dirname "$0")" && pwd)"
 HOSTS_FILE="/etc/hosts"
 PLIST_PATH="/Library/LaunchDaemons/com.goto-app.plist"
 NODE_BIN="$(which node)"
+SELECTED_HOSTNAME="${GOTO_INSTALL_HOSTNAME:-}"
+TLS_CERT_FILE="${GOTO_TLS_CERT_FILE:-}"
+TLS_KEY_FILE="${GOTO_TLS_KEY_FILE:-}"
+
+if [ -z "$SELECTED_HOSTNAME" ]; then
+  read -r -p "Hostname to use [goto]: " SELECTED_HOSTNAME
+fi
+
+if [ -z "$SELECTED_HOSTNAME" ]; then
+  SELECTED_HOSTNAME="goto"
+fi
+
+if [[ ! "$SELECTED_HOSTNAME" =~ ^[A-Za-z0-9.-]+$ ]]; then
+  echo "ERROR: Hostname may only contain letters, numbers, dots, and hyphens."
+  exit 1
+fi
+
+if [ -n "$TLS_CERT_FILE" ] && [ -z "$TLS_KEY_FILE" ] || [ -z "$TLS_CERT_FILE" ] && [ -n "$TLS_KEY_FILE" ]; then
+  echo "ERROR: GOTO_TLS_CERT_FILE and GOTO_TLS_KEY_FILE must either both be set or both be unset."
+  exit 1
+fi
 
 if [ -z "$NODE_BIN" ]; then
   echo "ERROR: Node.js not found. Install it from https://nodejs.org and try again."
@@ -32,11 +55,11 @@ echo ""
 # Step 1: Hosts file
 # ---------------------------------------------------------------------------
 echo "[1/4] Updating hosts file..."
-if grep -qw "goto" "$HOSTS_FILE"; then
-  echo "      'goto' already in hosts file — skipped."
+if grep -Eq "^[^#]*[[:space:]]${SELECTED_HOSTNAME}$" "$HOSTS_FILE"; then
+  echo "      '${SELECTED_HOSTNAME}' already in hosts file — skipped."
 else
-  printf "127.0.0.1\tgoto\n" >> "$HOSTS_FILE"
-  echo "      Added '127.0.0.1  goto'."
+  printf "127.0.0.1\t%s\n" "$SELECTED_HOSTNAME" >> "$HOSTS_FILE"
+  echo "      Added '127.0.0.1  ${SELECTED_HOSTNAME}'."
 fi
 
 # ---------------------------------------------------------------------------
@@ -44,7 +67,7 @@ fi
 # ---------------------------------------------------------------------------
 echo "[2/4] Installing dependencies..."
 cd "$APP_DIR"
-npm install --omit=dev 2>&1 | tail -3
+npm install --omit=dev
 echo "      Done."
 
 # ---------------------------------------------------------------------------
@@ -67,6 +90,32 @@ cat > "$PLIST_PATH" << PLIST
     <string>${APP_DIR}/server.js</string>
   </array>
 
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>GOTO_HOST</key>
+    <string>0.0.0.0</string>
+    <key>GOTO_HTTP_PORT</key>
+    <string>80</string>
+    <key>GOTO_DATA_FILE</key>
+    <string>${APP_DIR}/data.json</string>
+PLIST
+
+if [ -n "$TLS_CERT_FILE" ]; then
+cat >> "$PLIST_PATH" << PLIST
+    <key>GOTO_HTTPS_PORT</key>
+    <string>443</string>
+    <key>GOTO_FORCE_HTTPS</key>
+    <string>true</string>
+    <key>GOTO_TLS_CERT_FILE</key>
+    <string>${TLS_CERT_FILE}</string>
+    <key>GOTO_TLS_KEY_FILE</key>
+    <string>${TLS_KEY_FILE}</string>
+PLIST
+fi
+
+cat >> "$PLIST_PATH" << PLIST
+  </dict>
+
   <key>WorkingDirectory</key>
   <string>${APP_DIR}</string>
 
@@ -86,6 +135,7 @@ cat > "$PLIST_PATH" << PLIST
 PLIST
 
 chmod 644 "$PLIST_PATH"
+launchctl unload "$PLIST_PATH" 2>/dev/null || true
 launchctl load "$PLIST_PATH"
 echo "      Service loaded."
 
@@ -105,7 +155,11 @@ echo "=================================================="
 echo "  Setup complete!"
 echo "=================================================="
 echo ""
-echo "  Open your browser and go to: http://goto/"
+if [ -n "$TLS_CERT_FILE" ]; then
+  echo "  Open your browser and go to: https://${SELECTED_HOSTNAME}/"
+else
+  echo "  Open your browser and go to: http://${SELECTED_HOSTNAME}/"
+fi
 echo ""
 echo "  The server starts automatically on every boot."
 echo "  Logs: /var/log/goto-app.log"

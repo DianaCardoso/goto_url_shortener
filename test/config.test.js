@@ -2,6 +2,8 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
 
 const {
@@ -25,8 +27,12 @@ test("loadConfig returns sane manual-mode defaults", () => {
 });
 
 test("loadConfig resolves relative paths and enables https when both TLS files exist", () => {
-  const certPath = path.resolve(__dirname, "fixtures", "cert.pem");
-  const keyPath = path.resolve(__dirname, "fixtures", "key.pem");
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "goto-config-"));
+  const certPath = path.join(tempDir, "cert.pem");
+  const keyPath = path.join(tempDir, "key.pem");
+
+  fs.writeFileSync(certPath, "test cert");
+  fs.writeFileSync(keyPath, "test key");
 
   const config = loadConfig({
     GOTO_HOST: "0.0.0.0",
@@ -52,7 +58,7 @@ test("loadConfig rejects partial TLS configuration", () => {
   assert.throws(
     () =>
       loadConfig({
-        GOTO_TLS_CERT_FILE: path.resolve(__dirname, "fixtures", "cert.pem"),
+        GOTO_TLS_CERT_FILE: path.resolve(__dirname, "cert.pem"),
       }),
     /must either both be set or both be unset/,
   );

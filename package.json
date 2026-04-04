@@ -10,6 +10,7 @@
     "uninstall-service": "node uninstall-service.js"
   },
   "dependencies": {
+    "dotenv": "^17.4.0",
     "node-windows": "1.0.0-beta.8"
   }
 }

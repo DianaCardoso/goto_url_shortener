@@ -1,5 +1,7 @@
 "use strict";
 
+require("dotenv").config();
+
 const https = require("node:https");
 const http = require("node:http");
 const fs = require("node:fs");
@@ -109,8 +111,10 @@ function handleApi(req, res, method, pathname) {
 // ---------------------------------------------------------------------------
 
 function isDefaultPort(protocol, port) {
-  return (protocol === "http" && port === 80) ||
-    (protocol === "https" && port === 443);
+  return (
+    (protocol === "http" && port === 80) ||
+    (protocol === "https" && port === 443)
+  );
 }
 
 function getOrigin(req, protocol, port) {
@@ -199,7 +203,10 @@ function createAppHandler(protocol, port) {
 
 function createRedirectHandler() {
   return (req, res) => {
-    const location = new URL(req.url, getOrigin(req, "https", config.httpsPort));
+    const location = new URL(
+      req.url,
+      getOrigin(req, "https", config.httpsPort),
+    );
     res.writeHead(301, { Location: location.toString() });
     res.end();
   };
@@ -208,9 +215,13 @@ function createRedirectHandler() {
 function attachServerErrorHandler(server, protocol, port) {
   server.on("error", (err) => {
     if (err.code === "EACCES") {
-      console.error(`Error: Cannot bind ${protocol.toUpperCase()} server to port ${port}.`);
+      console.error(
+        `Error: Cannot bind ${protocol.toUpperCase()} server to port ${port}.`,
+      );
     } else if (err.code === "EADDRINUSE") {
-      console.error(`Error: ${protocol.toUpperCase()} port ${port} is already in use.`);
+      console.error(
+        `Error: ${protocol.toUpperCase()} port ${port} is already in use.`,
+      );
     } else {
       console.error(`${protocol.toUpperCase()} server error:`, err);
     }
@@ -224,7 +235,9 @@ const httpServer = http.createServer(httpHandler);
 attachServerErrorHandler(httpServer, "http", config.httpPort);
 
 httpServer.listen(config.httpPort, config.host, () => {
-  console.log(`HTTP server listening on http://${config.host}:${config.httpPort}`);
+  console.log(
+    `HTTP server listening on http://${config.host}:${config.httpPort}`,
+  );
 });
 
 if (config.httpsEnabled) {
@@ -239,7 +252,9 @@ if (config.httpsEnabled) {
   attachServerErrorHandler(httpsServer, "https", config.httpsPort);
 
   httpsServer.listen(config.httpsPort, config.host, () => {
-    console.log(`HTTPS server listening on https://${config.host}:${config.httpsPort}`);
+    console.log(
+      `HTTPS server listening on https://${config.host}:${config.httpsPort}`,
+    );
   });
 }
 

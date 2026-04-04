@@ -16,6 +16,9 @@ Thumbs.db
 # dados locais
 data.json
 
+# artefatos gerados
+daemon/
+
 # certificados (se usar https)
 *.pem
 

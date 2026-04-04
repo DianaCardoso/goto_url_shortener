@@ -11,6 +11,8 @@ It serves a small management UI plus alias redirects:
 
 ### Manual mode
 
+Manual mode is for running the app directly without installing a system service.
+
 Defaults:
 
 - host: `127.0.0.1`
@@ -51,7 +53,7 @@ The install scripts prompt for the hostname to add to the hosts file. Default: `
 
 Runtime configuration is controlled through environment variables.
 
-See [example.env](/Users/diana/projects/goto_url_shortener/example.env) for the full set.
+See [`example.env`](example.env) for the full set.
 
 Supported variables:
 
@@ -89,6 +91,8 @@ Install the local CA once per machine:
 ```bash
 mkcert -install
 ```
+
+Generate a certificate and key for the names you want this app to serve:
 
 ```bash
 mkdir -p certs
@@ -134,7 +138,7 @@ This project does not hardcode any certificate paths and does not require `mkcer
 
 ## Install
 
-### 🪟 Windows
+### Windows
 
 Run PowerShell as Administrator:
 
@@ -158,7 +162,7 @@ Uninstall:
 ./uninstall.ps1
 ```
 
-### 🍎 macOS
+### macOS
 
 Run:
 
@@ -187,15 +191,7 @@ sudo bash uninstall-mac.sh
 - Windows: service logs depend on the Windows Service wrapper
 - macOS: `/var/log/goto-app.log` and `/var/log/goto-app-error.log`
 
----
-
 ## Development Notes
 
-Alias data is stored in `data.json` by default.
-`data.json`, `daemon/`, and `node_modules/` are runtime/generated artifacts and are intentionally not tracked.
-
----
-
-###
-
-White Monster for ever!
+- Alias data is stored in `data.json` by default.
+- `data.json`, `daemon/`, and `node_modules/` are runtime/generated artifacts and are intentionally not tracked.

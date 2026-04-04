@@ -4,6 +4,19 @@
 
 param()
 
+function Get-DefaultValue {
+    param(
+        [string]$Value,
+        [string]$Fallback
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $Fallback
+    }
+
+    return $Value.Trim()
+}
+
 # ---------------------------------------------------------------------------
 # Self-elevation: relaunch as Administrator if not already
 # ---------------------------------------------------------------------------
@@ -19,7 +32,6 @@ if (-not $isAdmin) {
 
 $appDir    = $PSScriptRoot
 $hostsFile = "C:\Windows\System32\drivers\etc\hosts"
-$hostEntry = "127.0.0.1`tgoto"
 
 Write-Host ""
 Write-Host "==================================================" -ForegroundColor Cyan
@@ -27,14 +39,23 @@ Write-Host "  goto-app Setup" -ForegroundColor Cyan
 Write-Host "==================================================" -ForegroundColor Cyan
 Write-Host ""
 
+$selectedHostname = Get-DefaultValue (Read-Host "Hostname to use [goto]") "goto"
+if ($selectedHostname -notmatch '^[A-Za-z0-9.-]+$') {
+    Write-Host "ERROR: Hostname may only contain letters, numbers, dots, and hyphens." -ForegroundColor Red
+    exit 1
+}
+
+$escapedHostname = [regex]::Escape($selectedHostname)
+$hostEntry = "127.0.0.1`t$selectedHostname"
+
 # ---------------------------------------------------------------------------
 # Step 1: Hosts file
 # ---------------------------------------------------------------------------
 Write-Host "[1/4] Updating hosts file..." -ForegroundColor Yellow
 
 $hostsContent = Get-Content $hostsFile -Raw -ErrorAction SilentlyContinue
-if ($hostsContent -match '\bgoto\b') {
-    Write-Host "      'goto' already exists in hosts file - skipping." -ForegroundColor Gray
+if ($hostsContent -match "(?m)^[^#]*\b$escapedHostname\b") {
+    Write-Host "      '$selectedHostname' already exists in hosts file - skipping." -ForegroundColor Gray
 } else {
     try {
         Add-Content -Path $hostsFile -Value "`n$hostEntry" -Encoding ASCII
@@ -52,7 +73,7 @@ if ($hostsContent -match '\bgoto\b') {
 Write-Host "[2/4] Installing npm dependencies..." -ForegroundColor Yellow
 
 Set-Location $appDir
-$npmResult = npm install 2>&1
+$npmResult = npm install --omit=dev 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "      ERROR: npm install failed." -ForegroundColor Red
     Write-Host $npmResult
@@ -65,6 +86,7 @@ Write-Host "      Dependencies installed." -ForegroundColor Green
 # ---------------------------------------------------------------------------
 Write-Host "[3/4] Installing Windows Service..." -ForegroundColor Yellow
 
+$env:GOTO_INSTALL_HOSTNAME = $selectedHostname
 node "$appDir\install-service.js"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "      ERROR: Service installation failed." -ForegroundColor Red
@@ -87,7 +109,11 @@ Write-Host "  Setup complete!" -ForegroundColor Green
 Write-Host "==================================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "  Open your browser and go to:" -ForegroundColor White
-Write-Host "  http://goto/" -ForegroundColor Cyan
+if ([string]::IsNullOrWhiteSpace($env:GOTO_TLS_CERT_FILE) -or [string]::IsNullOrWhiteSpace($env:GOTO_TLS_KEY_FILE)) {
+    Write-Host "  http://$selectedHostname/" -ForegroundColor Cyan
+} else {
+    Write-Host "  https://$selectedHostname/" -ForegroundColor Cyan
+}
 Write-Host ""
 Write-Host "  The service 'goto-app' starts automatically with Windows."
 Write-Host "  To manage it: services.msc -> goto-app"

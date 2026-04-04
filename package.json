@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "test": "node --test",
     "install-service": "node install-service.js",
     "uninstall-service": "node uninstall-service.js"
   },

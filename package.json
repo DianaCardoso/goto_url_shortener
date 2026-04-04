@@ -9,7 +9,6 @@
     "uninstall-service": "node uninstall-service.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
     "node-windows": "1.0.0-beta.8"
   }
 }

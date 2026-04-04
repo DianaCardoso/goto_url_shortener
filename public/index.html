@@ -253,7 +253,7 @@
 <div class="container">
   <header>
     <img src="/edsonmoveis.png" width="300" height="50">
-    <p class="subtitle">URL shortener &mdash; type <code>goto/&lt;white_monster&gt;</code> in any browser</p>
+    <p class="subtitle">Create aliases under <code id="originCode"></code></p>
   </header>
 
   <form class="add-form" id="addForm">
@@ -293,8 +293,12 @@
   const aliasBody  = document.getElementById('aliasBody');
   const countBadge = document.getElementById('countBadge');
   const errorMsg   = document.getElementById('errorMsg');
+  const originCode = document.getElementById('originCode');
   const toast      = document.getElementById('toast');
+  const appOrigin  = window.location.origin;
   let toastTimer;
+
+  originCode.textContent = `${appOrigin}/<alias>`;
 
   function showToast(msg = 'Copied to clipboard!') {
     toast.textContent = msg;
@@ -329,7 +333,7 @@
     }
 
     aliasBody.innerHTML = entries.map(([alias, target]) => {
-      const gotoUrl = `http://goto/${alias}`;
+      const gotoUrl = `${appOrigin}/${alias}`;
       return `<tr>
         <td>
           <a class="alias-link" href="${escapeHtml(gotoUrl)}" target="_blank">${escapeHtml(alias)}</a>
@@ -371,7 +375,7 @@
   }
 
   function copyAlias(alias) {
-    navigator.clipboard.writeText(`http://goto/${alias}`)
+    navigator.clipboard.writeText(`${appOrigin}/${alias}`)
       .then(() => showToast('Copied to clipboard!'))
       .catch(() => showToast('Could not copy — clipboard blocked'));
   }
@@ -386,7 +390,7 @@
       document.getElementById('aliasInput').value = '';
       document.getElementById('urlInput').value = '';
       await loadAliases();
-      showToast(`Added: http://goto/${alias}`);
+      showToast(`Added: ${appOrigin}/${alias}`);
     } catch (err) {
       showError(err.message);
     }

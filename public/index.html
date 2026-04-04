@@ -316,6 +316,25 @@
     errorMsg.style.display = 'none';
   }
 
+  async function readJsonResponse(res, fallbackMessage) {
+    let data = null;
+
+    try {
+      data = await res.json();
+    } catch {
+      if (!res.ok) {
+        throw new Error(fallbackMessage);
+      }
+      return null;
+    }
+
+    if (!res.ok) {
+      throw new Error(data?.error || fallbackMessage);
+    }
+
+    return data;
+  }
+
   function escapeHtml(str) {
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
@@ -353,7 +372,7 @@
 
   async function loadAliases() {
     const res  = await fetch('/api/aliases');
-    const data = await res.json();
+    const data = await readJsonResponse(res, 'Failed to load aliases');
     renderTable(data);
   }
 
@@ -363,15 +382,16 @@
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ alias, url: targetUrl }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to add alias');
-    return data;
+    return readJsonResponse(res, 'Failed to add alias');
   }
 
   async function deleteAlias(alias) {
     if (!confirm(`Delete alias "${alias}"?`)) return;
-    await fetch(`/api/aliases/${encodeURIComponent(alias)}`, { method: 'DELETE' });
+    clearError();
+    const res = await fetch(`/api/aliases/${encodeURIComponent(alias)}`, { method: 'DELETE' });
+    await readJsonResponse(res, 'Failed to delete alias');
     await loadAliases();
+    showToast(`Deleted: ${appOrigin}/${alias}`);
   }
 
   function copyAlias(alias) {
@@ -396,7 +416,9 @@
     }
   });
 
-  loadAliases();
+  loadAliases().catch((err) => {
+    showError(err.message);
+  });
 
   function closeMonster() {
     const overlay = document.getElementById("monster-overlay");

@@ -4,6 +4,19 @@
 
 param()
 
+function Get-DefaultValue {
+    param(
+        [string]$Value,
+        [string]$Fallback
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $Fallback
+    }
+
+    return $Value.Trim()
+}
+
 # ---------------------------------------------------------------------------
 # Self-elevation
 # ---------------------------------------------------------------------------
@@ -26,6 +39,9 @@ Write-Host "  goto-app Uninstall" -ForegroundColor Yellow
 Write-Host "==================================================" -ForegroundColor Yellow
 Write-Host ""
 
+$selectedHostname = Get-DefaultValue (Read-Host "Hostname to remove from hosts file [goto]") "goto"
+$escapedHostname = [regex]::Escape($selectedHostname)
+
 # ---------------------------------------------------------------------------
 # Step 1: Remove Windows Service
 # ---------------------------------------------------------------------------
@@ -39,9 +55,9 @@ Write-Host "      Service removal requested." -ForegroundColor Green
 # ---------------------------------------------------------------------------
 Write-Host "[2/3] Removing hosts file entry..." -ForegroundColor Yellow
 
-$lines = Get-Content $hostsFile | Where-Object { $_ -notmatch '\bgoto\b' }
+$lines = Get-Content $hostsFile | Where-Object { $_ -notmatch "(?m)^[^#]*\b$escapedHostname\b" }
 Set-Content -Path $hostsFile -Value $lines -Encoding ASCII
-Write-Host "      Removed 'goto' from hosts file." -ForegroundColor Green
+Write-Host "      Removed '$selectedHostname' from hosts file." -ForegroundColor Green
 
 # ---------------------------------------------------------------------------
 # Step 3: Flush DNS cache

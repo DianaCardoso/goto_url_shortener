@@ -4,6 +4,8 @@
 # Usage: sudo bash uninstall-mac.sh
 #        (script self-elevates if not already root)
 
+set -euo pipefail
+
 # ---------------------------------------------------------------------------
 # Self-elevation
 # ---------------------------------------------------------------------------
@@ -15,6 +17,15 @@ fi
 APP_DIR="$(cd "$(dirname "$0")" && pwd)"
 HOSTS_FILE="/etc/hosts"
 PLIST_PATH="/Library/LaunchDaemons/com.goto-app.plist"
+SELECTED_HOSTNAME="${GOTO_INSTALL_HOSTNAME:-}"
+
+if [ -z "$SELECTED_HOSTNAME" ]; then
+  read -r -p "Hostname to remove from hosts file [goto]: " SELECTED_HOSTNAME
+fi
+
+if [ -z "$SELECTED_HOSTNAME" ]; then
+  SELECTED_HOSTNAME="goto"
+fi
 
 echo ""
 echo "=================================================="
@@ -38,8 +49,8 @@ fi
 # Step 2: Remove hosts entry
 # ---------------------------------------------------------------------------
 echo "[2/3] Removing hosts file entry..."
-sed -i '' '/[[:space:]]goto$/d' "$HOSTS_FILE"
-echo "      Removed 'goto' from hosts file."
+sed -i '' "/^[^#]*[[:space:]]${SELECTED_HOSTNAME}\$/d" "$HOSTS_FILE"
+echo "      Removed '${SELECTED_HOSTNAME}' from hosts file."
 
 # ---------------------------------------------------------------------------
 # Step 3: Flush DNS

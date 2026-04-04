@@ -19,5 +19,8 @@ data.json
 # certificados (se usar https)
 *.pem
 
+# artefatos gerados
+daemon/
+
 # arquivos temporários
 *.log

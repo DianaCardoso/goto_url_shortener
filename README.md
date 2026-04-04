@@ -44,11 +44,10 @@ http://goto/
 
 ## Logs
 
-Platform  |  Location
-
-Windows   |  Service Manager (services.msc → goto-app)
-
-macOS     |  /var/log/goto-app.log / /var/log/goto-app-error.log
+|  Platform  |  Location |
+|----------|----------|
+|  Windows   |  Service Manager (services.msc → goto-app)  |
+|  macOS     |  /var/log/goto-app.log / /var/log/goto-app-error.log  |
 
 ---
 

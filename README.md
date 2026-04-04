@@ -195,3 +195,7 @@ sudo bash uninstall-mac.sh
 
 - Alias data is stored in `data.json` by default.
 - `data.json`, `daemon/`, and `node_modules/` are runtime/generated artifacts and are intentionally not tracked.
+
+---
+
+White Monster for ever!

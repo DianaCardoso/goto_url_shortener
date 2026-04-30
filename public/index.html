@@ -4,19 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>goto - EdsonMóveis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #f5f5f5;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #f0f4ff;
       color: #1a1a1a;
       margin: 0;
-      padding: 40px 20px;
+      padding: 40px 20px 60px;
     }
 
     .container {
-      max-width: 820px;
+      max-width: 900px;
       margin: 0 auto;
     }
 
@@ -24,23 +27,15 @@
       margin-bottom: 32px;
     }
 
-    h1 {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 3rem;
-      font-weight: 700;
-      margin: 0 0 6px;
-      color: #000;
-      letter-spacing: -1px;
-    }
-
     .subtitle {
-      color: #666;
-      margin: 0;
+      color: #555;
+      margin: 10px 0 0;
       font-size: 0.95rem;
     }
 
     .subtitle code {
-      background: #e8e8e8;
+      background: #dce8ff;
+      color: #1a1a1a;
       padding: 1px 6px;
       border-radius: 4px;
       font-size: 0.9em;
@@ -49,7 +44,7 @@
     /* Add form */
     .add-form {
       background: #fff;
-      border: 1px solid #ddd;
+      border: 1px solid #ccd9f0;
       border-radius: 10px;
       padding: 20px 24px;
       margin-bottom: 24px;
@@ -82,14 +77,16 @@
       border-radius: 6px;
       font-size: 0.95rem;
       font-family: inherit;
+      color: #1a1a1a;
+      background: #fff;
       outline: none;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
 
     input[type="text"]:focus,
     input[type="url"]:focus {
       border-color: #0066ff;
-      box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+      box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.12);
     }
 
     .btn {
@@ -98,6 +95,7 @@
       border-radius: 6px;
       font-size: 0.9rem;
       font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
       transition: opacity 0.15s, background 0.15s;
       white-space: nowrap;
@@ -111,11 +109,30 @@
       color: #fff;
     }
 
+    .btn-secondary {
+      background: #f0f4ff;
+      color: #1a1a1a;
+      border: 1px solid #ccd9f0;
+    }
+
     .btn-copy {
-      background: #e8e8e8;
-      color: #333;
+      background: #dce8ff;
+      color: #1a1a1a;
       padding: 5px 10px;
       font-size: 0.8rem;
+    }
+
+    .btn-edit {
+      background: transparent;
+      color: #0066ff;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      border: 1px solid #99bbff;
+    }
+
+    .btn-edit:hover {
+      background: #f0f4ff;
+      opacity: 1;
     }
 
     .btn-delete {
@@ -123,7 +140,7 @@
       color: #cc2200;
       padding: 5px 10px;
       font-size: 0.8rem;
-      border: 1px solid #eecdcc;
+      border: 1px solid #f0ccc8;
     }
 
     .btn-delete:hover {
@@ -134,14 +151,14 @@
     /* Table */
     .table-wrap {
       background: #fff;
-      border: 1px solid #ddd;
+      border: 1px solid #ccd9f0;
       border-radius: 10px;
-      overflow: hidden;
+      overflow-x: auto;
     }
 
     .table-header {
       padding: 14px 20px;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #ccd9f0;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -151,7 +168,7 @@
       margin: 0;
       font-size: 0.95rem;
       font-weight: 600;
-      color: #333;
+      color: #1a1a1a;
     }
 
     .count-badge {
@@ -159,33 +176,73 @@
       color: #888;
     }
 
+    .search-input {
+      padding: 6px 10px;
+      border: 1px solid #ccd9f0;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: #1a1a1a;
+      background: #f0f4ff;
+      outline: none;
+      width: 200px;
+      transition: border-color 0.15s, box-shadow 0.15s, width 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: #0066ff;
+      box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.12);
+      width: 260px;
+      background: #fff;
+    }
+
+    @media (max-width: 600px) {
+      .search-input { width: 120px; }
+      .search-input:focus { width: 160px; }
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
+      table-layout: fixed;
+      min-width: 500px;
     }
+
+    col.col-alias       { width: 25%; }
+    col.col-destination { width: 45%; }
+    col.col-actions     { width: 30%; }
 
     th {
       text-align: left;
-      padding: 10px 20px;
+      padding: 10px 16px;
       font-size: 0.78rem;
       font-weight: 600;
       color: #888;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      background: #fafafa;
-      border-bottom: 1px solid #eee;
+      background: #f7f9ff;
+      border-bottom: 1px solid #ccd9f0;
     }
 
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    th.sortable:hover { color: #0066ff; }
+
     td {
-      padding: 12px 20px;
+      padding: 12px 16px;
       font-size: 0.9rem;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid #f0f4ff;
       vertical-align: middle;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     tr:last-child td { border-bottom: none; }
-
-    tr:hover td { background: #fafafa; }
+    tr:hover td { background: #f7f9ff; }
 
     .alias-link {
       font-family: 'Courier New', Courier, monospace;
@@ -199,7 +256,7 @@
 
     .target-url {
       color: #555;
-      max-width: 380px;
+      display: block;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -209,6 +266,17 @@
       display: flex;
       gap: 6px;
       align-items: center;
+      overflow: visible;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 12px 60px; }
+      .add-form { padding: 16px; gap: 8px; }
+      col.col-alias       { width: 25%; }
+      col.col-destination { width: 45%; }
+      col.col-actions     { width: 30%; }
+      .btn-copy { display: none; }
     }
 
     .empty-state {
@@ -217,9 +285,8 @@
       color: #aaa;
     }
 
-    .empty-state p { margin: 8px 0 0; font-size: 0.9rem; }
+    .empty-state p { margin: 8px 0 0; font-size: 0.9rem; color: #888; }
 
-    /* Error message */
     .error-msg {
       color: #cc2200;
       font-size: 0.85rem;
@@ -241,11 +308,95 @@
       opacity: 0;
       transition: opacity 0.2s, transform 0.2s;
       pointer-events: none;
+      z-index: 1000;
     }
 
     #toast.show {
       opacity: 1;
       transform: translateX(-50%) translateY(0);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      padding: 20px;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px 14px;
+      border-bottom: 1px solid #f0f4ff;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      color: #888;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+    }
+
+    .modal-close:hover { color: #1a1a1a; }
+
+    .modal-body {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-error {
+      color: #cc2200;
+      font-size: 0.85rem;
+      padding: 0 24px;
+      display: none;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 14px 24px 18px;
+      border-top: 1px solid #f0f4ff;
+    }
+
+    /* Footer */
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      text-align: right;
+      padding: 6px 20px;
+      font-size: 0.72rem;
+      color: #aaa;
+      letter-spacing: 0.2px;
+      background: #fff;
+      border-top: 1px solid #ccd9f0;
     }
   </style>
 </head>
@@ -272,12 +423,18 @@
   <div class="table-wrap">
     <div class="table-header">
       <h2>Aliases</h2>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search aliases..." autocomplete="off" spellcheck="false">
       <span class="count-badge" id="countBadge">0 saved</span>
     </div>
     <table>
+      <colgroup>
+        <col class="col-alias">
+        <col class="col-destination">
+        <col class="col-actions">
+      </colgroup>
       <thead>
         <tr>
-          <th>Alias</th>
+          <th class="sortable" id="sortAlias" onclick="toggleSort()">Alias <span id="sortIcon">▲</span></th>
           <th>Destination</th>
           <th>Actions</th>
         </tr>
@@ -287,7 +444,34 @@
   </div>
 </div>
 
-<div id="toast">Copied to clipboard!</div>
+<footer>Made by Diana Macena</footer>
+
+<div id="toast"></div>
+
+<!-- Edit modal -->
+<div id="modalOverlay" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Edit alias</h3>
+      <button class="modal-close" onclick="closeEditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="editAlias">Alias</label>
+        <input type="text" id="editAlias" pattern="[a-zA-Z0-9_-]+" required autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label for="editUrl">Destination URL</label>
+        <input type="url" id="editUrl" required autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-error" id="modalError"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
 
 <script>
   const aliasBody  = document.getElementById('aliasBody');
@@ -297,10 +481,17 @@
   const toast      = document.getElementById('toast');
   const appOrigin  = window.location.origin;
   let toastTimer;
+  let aliasesData  = {};
+  let currentEditAlias = null;
+  let sortAsc = true;
 
   originCode.textContent = `${appOrigin}/<alias>`;
 
-  function showToast(msg = 'Copied to clipboard!') {
+  // ---------------------------------------------------------------------------
+  // Utilities
+  // ---------------------------------------------------------------------------
+
+  function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add('show');
     clearTimeout(toastTimer);
@@ -316,32 +507,40 @@
     errorMsg.style.display = 'none';
   }
 
-  async function readJsonResponse(res, fallbackMessage) {
-    let data = null;
-
-    try {
-      data = await res.json();
-    } catch {
-      if (!res.ok) {
-        throw new Error(fallbackMessage);
-      }
-      return null;
-    }
-
-    if (!res.ok) {
-      throw new Error(data?.error || fallbackMessage);
-    }
-
-    return data;
-  }
-
   function escapeHtml(str) {
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function renderTable(aliases) {
-    const entries = Object.entries(aliases);
-    countBadge.textContent = `${entries.length} saved`;
+  // ---------------------------------------------------------------------------
+  // Table
+  // ---------------------------------------------------------------------------
+
+  function applyFilter() {
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    if (!q) return renderTable(aliasesData);
+    const filtered = Object.fromEntries(
+      Object.entries(aliasesData).filter(([alias, entry]) =>
+        alias.toLowerCase().includes(q) || entry.url.toLowerCase().includes(q)
+      )
+    );
+    renderTable(filtered, Object.keys(aliasesData).length);
+  }
+
+  document.getElementById('searchInput').addEventListener('input', applyFilter);
+
+  function toggleSort() {
+    sortAsc = !sortAsc;
+    document.getElementById('sortIcon').textContent = sortAsc ? '▲' : '▼';
+    applyFilter();
+  }
+
+  function renderTable(data, total) {
+    const entries = Object.entries(data).sort(([a], [b]) => sortAsc ? a.localeCompare(b) : b.localeCompare(a));
+    const shown = entries.length;
+    const all = total !== undefined ? total : shown;
+    countBadge.textContent = total !== undefined && shown !== all
+      ? `${shown} of ${all} saved`
+      : `${shown} saved`;
 
     if (entries.length === 0) {
       aliasBody.innerHTML = `<tr><td colspan="3"><div class="empty-state">
@@ -351,18 +550,20 @@
       return;
     }
 
-    aliasBody.innerHTML = entries.map(([alias, target]) => {
+    aliasBody.innerHTML = entries.map(([alias, entry]) => {
+      const { url } = entry;
       const gotoUrl = `${appOrigin}/${alias}`;
       return `<tr>
         <td>
           <a class="alias-link" href="${escapeHtml(gotoUrl)}" target="_blank">${escapeHtml(alias)}</a>
         </td>
         <td>
-          <span class="target-url" title="${escapeHtml(target)}">${escapeHtml(target)}</span>
+          <span class="target-url" title="${escapeHtml(url)}">${escapeHtml(url)}</span>
         </td>
         <td>
           <div class="actions">
-            <button class="btn btn-copy" onclick="copyAlias('${escapeHtml(alias)}')">Copy link</button>
+            <button class="btn btn-copy"   onclick="copyAlias('${escapeHtml(alias)}')">Copy link</button>
+            <button class="btn btn-edit"   onclick="openEditModal('${escapeHtml(alias)}')">Edit</button>
             <button class="btn btn-delete" onclick="deleteAlias('${escapeHtml(alias)}')">Delete</button>
           </div>
         </td>
@@ -370,26 +571,34 @@
     }).join('');
   }
 
+  // ---------------------------------------------------------------------------
+  // API calls
+  // ---------------------------------------------------------------------------
+
   async function loadAliases() {
-    const res  = await fetch('/api/aliases');
-    const data = await readJsonResponse(res, 'Failed to load aliases');
-    renderTable(data);
+    const res = await fetch('/api/aliases');
+    const raw = await res.json();
+    // Normalize flat string format { alias: "url" } to { alias: { url } }
+    aliasesData = Object.fromEntries(
+      Object.entries(raw).map(([k, v]) => [k, typeof v === 'string' ? { url: v } : v])
+    );
+    applyFilter();
   }
 
   async function addAlias(alias, targetUrl) {
-    const res  = await fetch('/api/aliases', {
+    const res = await fetch('/api/aliases', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ alias, url: targetUrl }),
     });
-    return readJsonResponse(res, 'Failed to add alias');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to add alias');
+    return data;
   }
 
   async function deleteAlias(alias) {
     if (!confirm(`Delete alias "${alias}"?`)) return;
-    clearError();
-    const res = await fetch(`/api/aliases/${encodeURIComponent(alias)}`, { method: 'DELETE' });
-    await readJsonResponse(res, 'Failed to delete alias');
+    await fetch(`/api/aliases/${encodeURIComponent(alias)}`, { method: 'DELETE' });
     await loadAliases();
     showToast(`Deleted: ${appOrigin}/${alias}`);
   }
@@ -403,12 +612,12 @@
   document.getElementById('addForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     clearError();
-    const alias = document.getElementById('aliasInput').value.trim();
+    const alias     = document.getElementById('aliasInput').value.trim();
     const targetUrl = document.getElementById('urlInput').value.trim();
     try {
       await addAlias(alias, targetUrl);
       document.getElementById('aliasInput').value = '';
-      document.getElementById('urlInput').value = '';
+      document.getElementById('urlInput').value   = '';
       await loadAliases();
       showToast(`Added: ${appOrigin}/${alias}`);
     } catch (err) {
@@ -416,15 +625,70 @@
     }
   });
 
-  loadAliases().catch((err) => {
-    showError(err.message);
-  });
+  // ---------------------------------------------------------------------------
+  // Edit modal
+  // ---------------------------------------------------------------------------
 
-  function closeMonster() {
-    const overlay = document.getElementById("monster-overlay");
-    if (overlay) overlay.remove();
+  function openEditModal(alias) {
+    currentEditAlias = alias;
+    const entry = aliasesData[alias];
+    document.getElementById('editAlias').value = alias;
+    document.getElementById('editUrl').value   = entry.url;
+    document.getElementById('modalError').style.display = 'none';
+    document.getElementById('modalOverlay').style.display = 'flex';
+    document.getElementById('editAlias').focus();
   }
 
+  function closeEditModal() {
+    document.getElementById('modalOverlay').style.display = 'none';
+    currentEditAlias = null;
+  }
+
+  function showModalError(msg) {
+    const el = document.getElementById('modalError');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  async function saveEdit() {
+    document.getElementById('modalError').style.display = 'none';
+
+    const newAlias = document.getElementById('editAlias').value.trim();
+    const newUrl   = document.getElementById('editUrl').value.trim();
+
+    if (!newAlias) return showModalError('Alias is required.');
+    if (!/^[a-zA-Z0-9_-]+$/.test(newAlias)) return showModalError('Alias may only contain letters, numbers, _ and -');
+    if (!newUrl) return showModalError('URL is required.');
+
+    try {
+      const res = await fetch(`/api/aliases/${encodeURIComponent(currentEditAlias)}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ alias: newAlias, url: newUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) return showModalError(data.error || 'Failed to save');
+      closeEditModal();
+      await loadAliases();
+      showToast('Alias updated!');
+    } catch (err) {
+      showModalError(err.message);
+    }
+  }
+
+  // Close modal on overlay click
+  document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modalOverlay')) closeEditModal();
+  });
+
+  // Close modal on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('modalOverlay').style.display !== 'none') {
+      closeEditModal();
+    }
+  });
+
+  loadAliases();
 </script>
 </body>
 </html>

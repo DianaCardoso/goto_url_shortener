@@ -93,14 +93,48 @@ function handleApi(req, res, method, pathname) {
     });
   }
 
-  // DELETE /api/aliases/:alias
-  const deleteMatch = pathname.match(/^\/api\/aliases\/(.+)$/);
-  if (method === "DELETE" && deleteMatch) {
-    const alias = decodeURIComponent(deleteMatch[1]);
+  // DELETE /api/aliases/:alias  |  PUT /api/aliases/:alias
+  const aliasMatch = pathname.match(/^\/api\/aliases\/(.+)$/);
+
+  if (method === "DELETE" && aliasMatch) {
+    const alias = decodeURIComponent(aliasMatch[1]);
     if (!aliasStore.delete(alias)) {
       return jsonResponse(res, 404, { error: "alias not found" });
     }
     return jsonResponse(res, 200, { deleted: alias });
+  }
+
+  if (method === "PUT" && aliasMatch) {
+    return readBody(req, (body) => {
+      let parsed;
+      try {
+        parsed = JSON.parse(body);
+      } catch {
+        return jsonResponse(res, 400, { error: "invalid JSON" });
+      }
+      const { alias: newAlias, url: newUrl } = parsed;
+      if (newAlias && !/^[a-zA-Z0-9_-]+$/.test(newAlias)) {
+        return jsonResponse(res, 400, {
+          error: "alias may only contain letters, numbers, _ and -",
+        });
+      }
+      if (newUrl && !/^https?:\/\//i.test(newUrl)) {
+        return jsonResponse(res, 400, {
+          error: "url must start with http:// or https://",
+        });
+      }
+      const alias = decodeURIComponent(aliasMatch[1]);
+      const result = aliasStore.update(
+        alias,
+        newAlias || alias,
+        newUrl || null,
+      );
+      if (result === false)
+        return jsonResponse(res, 404, { error: "alias not found" });
+      if (result === "conflict")
+        return jsonResponse(res, 409, { error: "alias already exists" });
+      return jsonResponse(res, 200, result);
+    });
   }
 
   jsonResponse(res, 404, { error: "unknown API route" });
@@ -134,7 +168,7 @@ function createAppHandler(protocol, port) {
     if (method === "OPTIONS") {
       res.writeHead(204, {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET,POST,DELETE",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE",
         "Access-Control-Allow-Headers": "Content-Type",
       });
       return res.end();
@@ -190,9 +224,9 @@ function createAppHandler(protocol, port) {
       const escapedAlias = escapeHtml(alias);
       res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
       return res.end(
-        `<!DOCTYPE html><html><body style="font-family:system-ui;max-width:600px;margin:60px auto;padding:0 20px">` +
-          `<h2>Alias not found: <code>${escapedAlias}</code></h2>` +
-          `<p><a href="${getOrigin(req, protocol, port)}/">Manage aliases</a></p></body></html>`,
+        `<!DOCTYPE html><html><body style="font-family:system-ui;max-width:600px;margin:60px auto;padding:0 20px"> +
+          <h2>Alias not found: <code>${escapedAlias}</code></h2> +
+          <p><a href="${getOrigin(req, protocol, port)}/">Manage aliases</a></p></body></html>`,
       );
     }
 

@@ -51,6 +51,17 @@ function createAliasStore(filePath) {
       saveStore(filePath, store);
       return url;
     },
+    update(oldAlias, newAlias, newUrl) {
+      const store = loadStore(filePath);
+      if (!store.aliases[oldAlias]) return false;
+      if (newAlias !== oldAlias && store.aliases[newAlias] !== undefined)
+        return "conflict";
+      const url = newUrl || store.aliases[oldAlias];
+      if (newAlias !== oldAlias) delete store.aliases[oldAlias];
+      store.aliases[newAlias] = url;
+      saveStore(filePath, store);
+      return { alias: newAlias, url };
+    },
   };
 }
 
